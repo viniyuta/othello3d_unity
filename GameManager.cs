@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using JetBrains.Annotations;
 using UnityEditor.SearchService;
 using UnityEngine;
@@ -146,10 +147,22 @@ public class GameManager : MonoBehaviour
         yield return uiManager.AnimateTopText();
     }
 
+    private IEnumerator ShowGameOver()
+    {
+        uiManager.SetTopText("Neither player can play!");
+        yield return uiManager.AnimateTopText();
+
+        yield return uiManager.ShowScoreText();
+        yield return new WaitForSeconds(0.5f);
+
+        yield return ShowCounting();
+    }
+
     private IEnumerator ShowTurnOutcome(MoveInfo moveInfo)
     {
         if (gameState.GameOver)
         {
+            ShowGameOver();
             yield break;
         }
 
@@ -159,5 +172,29 @@ public class GameManager : MonoBehaviour
         }
 
         uiManager.SetPlayerText(gameState.CurrentPlayer);
+    }
+
+    private IEnumerator ShowCounting()
+    {
+        int blackCount = 0; int whiteCount = 0;
+
+        foreach (Position pos in gameState.OccupiedPositions())
+        {
+            Player player = gameState.Board[pos.Col, pos.Row];
+
+            if (player == Player.Black)
+            {
+                blackCount++;
+                uiManager.SetBlackScoreText(blackCount);
+            }
+            else if (player == Player.White)
+            {
+                whiteCount++;
+                uiManager.SetWhiteScoreText(whiteCount);
+            }
+
+            discs[pos.Col, pos.Row].Twitch();
+            yield return new WaitForSeconds(0.05f);
+        }
     }
 }

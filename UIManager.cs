@@ -35,4 +35,23 @@ public class UIManager : MonoBehaviour
             topText.text = "White's Turn   <sprite name=DiscWhiteUp>";
         }
     }
+
+    public void SetSkippedPlayer(Player skippedPlayer)
+    {
+        if (skippedPlayer == Player.Black)
+        {
+            topText.text = "SKIP!  <sprite name=DiscBlackUp>";
+        }
+
+        else if (skippedPlayer == Player.White)
+        {
+            topText.text = "SKIP!  <sprite name=DiscWhiteUp>";
+        }
+    }
+
+    public IEnumerator AnimateTopText()
+    {
+        topText.transform.LeanScale(Vector3.one * 1.2f, 0.25f).setLoopPingPong(2);
+        yield return new WaitForSeconds(1.0f);
+    }
 }

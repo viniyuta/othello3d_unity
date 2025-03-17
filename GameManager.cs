@@ -89,7 +89,7 @@ public class GameManager : MonoBehaviour
     {
         HideLegalMoves();
         yield return ShowMove(moveInfo);
-        uiManager.SetPlayerText(gameState.CurrentPlayer);
+        yield return ShowTurnOutcome(moveInfo);
         ShowLegalMoves();
     }
 
@@ -138,5 +138,26 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.33f);  // 駒の生成アニメーションが終わるのを待つ時間
         FlipDiscs(moveInfo.Outflanked);
         yield return new WaitForSeconds(0.83f);  // 駒をひっくり返すアニメーションの終了を待つ処理
+    }
+
+    private IEnumerator ShowTurnSkipped(Player skippedPlayer)
+    {
+        uiManager.SetSkippedPlayer(skippedPlayer);
+        yield return uiManager.AnimateTopText();
+    }
+
+    private IEnumerator ShowTurnOutcome(MoveInfo moveInfo)
+    {
+        if (gameState.GameOver)
+        {
+            yield break;
+        }
+
+        if (gameState.CurrentPlayer == moveInfo.Player)
+        {
+            yield return ShowTurnSkipped(gameState.CurrentPlayer.Opponent());
+        }
+
+        uiManager.SetPlayerText(gameState.CurrentPlayer);
     }
 }

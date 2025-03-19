@@ -92,4 +92,44 @@ public class UIManager : MonoBehaviour
     {
         whiteScoreText.text = $"<sprite name=DiscWhiteUp>{score}";
     }
+
+    private IEnumerator ShowOverlay()
+    {
+        blackOverlay.gameObject.SetActive(true);
+        blackOverlay.color = Color.clear;
+        blackOverlay.rectTransform.LeanAlpha(0.8f, 1.0f);
+        yield return new WaitForSeconds(1.0f);
+    }
+
+    private IEnumerator HideOverlay()
+    {
+        blackOverlay.rectTransform.LeanAlpha(0, 1.0f);
+        yield return new WaitForSeconds(1.0f);
+        blackOverlay.gameObject.SetActive(false);
+    }
+
+    private IEnumerator MoveScoresDown()
+    {
+        blackScoreText.rectTransform.LeanMoveY(0, 0.5f);
+        whiteScoreText.rectTransform.LeanMoveY(0, 0.5f);
+        yield return new WaitForSeconds(0.5f);
+    }
+
+    public void SetWinnerText(Player winner)
+    {
+        winnerText.text = winner switch
+        {
+            Player.Black => "Black Won!",
+            Player.White => "White won!",
+            _ => "Draw!",
+        };
+    }
+
+    public IEnumerator ShowEndScreen()
+    {
+        yield return ShowOverlay();
+        yield return MoveScoresDown();
+        yield return ScaleUp(winnerText.rectTransform);
+        yield return ScaleUp(playAgainButton);
+    }
 }

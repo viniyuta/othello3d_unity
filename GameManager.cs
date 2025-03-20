@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -199,5 +200,17 @@ public class GameManager : MonoBehaviour
             discs[pos.Col, pos.Row].Twitch();
             yield return new WaitForSeconds(0.05f);
         }
+    }
+
+    private IEnumerator RestartGame()
+    {
+        yield return uiManager.HideEndScreen();
+        UnityEngine.SceneManagement.Scene activeScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(activeScene.name);
+    }
+
+    public void OnPlayAgainClicked()
+    {
+        StartCoroutine(RestartGame());
     }
 }

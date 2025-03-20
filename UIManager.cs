@@ -132,4 +132,15 @@ public class UIManager : MonoBehaviour
         yield return ScaleUp(winnerText.rectTransform);
         yield return ScaleUp(playAgainButton);
     }
+
+    public IEnumerator HideEndScreen()
+    {
+        StartCoroutine(ScaleDown(winnerText.rectTransform));
+        StartCoroutine(ScaleDown(blackScoreText.rectTransform));
+        StartCoroutine(ScaleDown(whiteScoreText.rectTransform));
+        StartCoroutine(ScaleDown(playAgainButton));
+
+        yield return new WaitForSeconds(0.5f);
+        yield return HideOverlay();
+    }
 }

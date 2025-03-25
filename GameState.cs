@@ -6,7 +6,7 @@ public class GameState
     public const int COLS = 8;
     public const int ROWS = 8;
 
-    public Player[,] Board { get; }
+    public Board Board { get; }
     public Dictionary<Player, int> DiscCount { get; }
     public Player CurrentPlayer { get; private set; }
     public bool GameOver { get; private set; }
@@ -15,11 +15,7 @@ public class GameState
 
     public GameState()
     {
-        Board = new Player[COLS, ROWS];
-        Board[3,3] = Player.White;
-        Board[3,4] = Player.Black;
-        Board[4,3] = Player.Black;
-        Board[4,4] = Player.White;
+        Board = Board.Initial();
 
         DiscCount = new Dictionary<Player, int>()
         {

@@ -11,13 +11,13 @@ public class Board
         public Player this[int col, int row]
         {
             get { return board[col, row]; }
-            private set { board[col, row] = value; }
+            set { board[col, row] = value; }
         }
 
         public Player this[Position pos]
         {
             get { return this[pos.Col, pos.Row]; }
-            private set { this[pos.Col, pos.Row] = value; }
+            set { this[pos.Col, pos.Row] = value; }
         }
 
         public static Board Initial()

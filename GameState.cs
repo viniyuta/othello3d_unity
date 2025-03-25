@@ -107,12 +107,7 @@ public class GameState
         }
     }
 
-    private bool isInsideBoard(int row, int col)
-    {
-        return col >= 0 && col < COLS && row >= 0 && row < ROWS;
-    }
-
-    private bool isInsideBoard(Position pos)
+    private bool IsInsideBoard(Position pos)
     {
         return pos.Col >= 0 && pos.Col < COLS && pos.Row >= 0 && pos.Row < ROWS;
     }
@@ -122,7 +117,7 @@ public class GameState
         List<Position> outflanked = new List<Position>();
         Position pos = initialPos + dir;
 
-        while (isInsideBoard(pos) && Board[pos.Col, pos.Row] != Player.None)
+        while (IsInsideBoard(pos) && Board[pos.Col, pos.Row] != Player.None)
         {
             if (Board[pos.Col, pos.Row] == player.Opponent())
             {

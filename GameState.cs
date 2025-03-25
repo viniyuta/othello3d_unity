@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 public class GameState
 {
-    public const int COLS = 8;
-    public const int ROWS = 8;
+    private readonly int COLS = Board.COLS;
+    private readonly int ROWS = Board.ROWS;
 
     public Board Board { get; }
     public Dictionary<Player, int> DiscCount { get; }

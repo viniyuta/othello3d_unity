@@ -26,8 +26,8 @@ public class GameManager : MonoBehaviour
 
     private Dictionary<Player, Disc> discPrefabs = new Dictionary<Player, Disc>();
     private GameState gameState = new GameState();
-    private const int COLS = 8;
-    private const int ROWS = 8;
+    private static readonly int COLS = Board.COLS;
+    private static readonly int ROWS = Board.ROWS;
     private Disc[,] discs = new Disc[COLS, ROWS];
     private List<GameObject> highlights = new();
 

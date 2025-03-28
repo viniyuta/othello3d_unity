@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using JetBrains.Annotations;
 using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +20,9 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private GameObject highlightPrefab;
+
+    [SerializeField]
+    private UIManager uiManager;
 
     private Dictionary<Player, Disc> discPrefabs = new Dictionary<Player, Disc>();
     private GameState gameState = new GameState();
@@ -35,6 +40,7 @@ public class GameManager : MonoBehaviour
 
         AddStartDiscs();
         ShowLegalMoves();
+        uiManager.SetPlayerText(gameState.CurrentPlayer);
     }
 
     // Update is called once per frame
@@ -85,6 +91,7 @@ public class GameManager : MonoBehaviour
     {
         HideLegalMoves();
         yield return ShowMove(moveInfo);
+        yield return ShowTurnOutcome(moveInfo);
         ShowLegalMoves();
     }
 
@@ -133,5 +140,77 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.33f);  // 駒の生成アニメーションが終わるのを待つ時間
         FlipDiscs(moveInfo.Outflanked);
         yield return new WaitForSeconds(0.83f);  // 駒をひっくり返すアニメーションの終了を待つ処理
+    }
+
+    private IEnumerator ShowTurnSkipped(Player skippedPlayer)
+    {
+        uiManager.SetSkippedPlayer(skippedPlayer);
+        yield return uiManager.AnimateTopText();
+    }
+
+    private IEnumerator ShowGameOver(Player winner)
+    {
+        uiManager.SetTopText("GameOver");
+        yield return uiManager.AnimateTopText();
+
+        yield return uiManager.ShowScoreText();
+        yield return new WaitForSeconds(0.5f);
+
+        yield return ShowCounting();
+
+        uiManager.SetWinnerText(winner);
+        yield return uiManager.ShowEndScreen();
+    }
+
+    private IEnumerator ShowTurnOutcome(MoveInfo moveInfo)
+    {
+        if (gameState.GameOver)
+        {
+            yield return ShowGameOver(gameState.Winner);
+            yield break;
+        }
+
+        if (gameState.CurrentPlayer == moveInfo.Player)
+        {
+            yield return ShowTurnSkipped(gameState.CurrentPlayer.Opponent());
+        }
+
+        uiManager.SetPlayerText(gameState.CurrentPlayer);
+    }
+
+    private IEnumerator ShowCounting()
+    {
+        int blackCount = 0; int whiteCount = 0;
+
+        foreach (Position pos in gameState.OccupiedPositions())
+        {
+            Player player = gameState.Board[pos.Col, pos.Row];
+
+            if (player == Player.Black)
+            {
+                blackCount++;
+                uiManager.SetBlackScoreText(blackCount);
+            }
+            else if (player == Player.White)
+            {
+                whiteCount++;
+                uiManager.SetWhiteScoreText(whiteCount);
+            }
+
+            discs[pos.Col, pos.Row].Twitch();
+            yield return new WaitForSeconds(0.05f);
+        }
+    }
+
+    private IEnumerator RestartGame()
+    {
+        yield return uiManager.HideEndScreen();
+        UnityEngine.SceneManagement.Scene activeScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(activeScene.name);
+    }
+
+    public void OnPlayAgainClicked()
+    {
+        StartCoroutine(RestartGame());
     }
 }

@@ -26,9 +26,14 @@ public class GameManager : MonoBehaviour
 
     private Dictionary<Player, Disc> discPrefabs = new Dictionary<Player, Disc>();
     private GameState gameState = new GameState();
-    private static readonly int COLS = Board.COLS;
-    private static readonly int ROWS = Board.ROWS;
-    private Disc[,] discs = new Disc[COLS, ROWS];
+    private static readonly int[] COLS = Board.COLS;
+    private static readonly int[] ROWS = Board.ROWS;
+    private List<Disc[,]> discs = new()
+    {
+        new Disc[COLS[0], ROWS[0]],
+        new Disc[COLS[1], ROWS[1]], 
+        new Disc[COLS[2], ROWS[2]]
+    };
     private List<GameObject> highlights = new();
 
 
@@ -68,7 +73,8 @@ public class GameManager : MonoBehaviour
         foreach (Position boardPos in  gameState.LegalMoves.Keys)
         {
             Vector3 scenePos = BoardToScenePos(boardPos);
-            GameObject highlight = Instantiate(highlightPrefab, scenePos, Quaternion.identity);
+            Quaternion sceneRot = BoardToSceneRot(boardPos);
+            GameObject highlight = Instantiate(highlightPrefab, scenePos, sceneRot);
             highlights.Add(highlight);
         }
     }
@@ -100,28 +106,78 @@ public class GameManager : MonoBehaviour
         // タップした位置をボードのPositionに変換する
         int col = (int)(scenePos.x - 0.25f);  // オセロ盤の各マスのサイズが1.0fのためx方向の調整は0.25fになる
         int row = (int)(scenePos.z - 0.25f);  // オセロ盤の各マスのサイズが1.0fのためz方向の調整は0.25fになる
+        int floor = (int)scenePos.y;
 
-        return new Position(col, row);
+        for (int prevFloor = 0; prevFloor < floor; prevFloor++)
+        {
+            int floorCol = Board.floorPositions[prevFloor].Col;
+            int floorRow = Board.floorPositions[prevFloor].Row;
+            col -= floorCol;
+            row -= floorRow;
+        }
+
+        return new Position(col, row, floor);
     }
 
     private Vector3 BoardToScenePos(Position boardPos)
     {
         float x = boardPos.Col + 0.75f;  // オセロ盤の各マスのサイズが1.0fのためx方向の調整は0.75fになる
+        float y = boardPos.Floor;
         float z = boardPos.Row + 0.75f;  // オセロ盤の各マスのサイズが1.0fのためz方向の調整は0.75fになる
-        return new Vector3(x, 0, z);
+
+        for (int prevFloor = 0; prevFloor < boardPos.Floor; prevFloor++)  // ベースフロアに対する位置調整
+        {
+            int floorCol = Board.floorPositions[prevFloor].Col;
+            int floorRow = Board.floorPositions[prevFloor].Row;
+            x += floorCol;
+            z += floorRow;
+        }
+
+        if (Board.IsFloorBorder(boardPos))  // 横向き駒
+        {
+            float adjustVertical = 0.51f;
+            float adjustHorizontal = 0.47f;
+            y -= adjustVertical;  // 横向きの駒の場合はマスの中央になるために半マス分位置を下げる
+
+            int floorCols = COLS[boardPos.Floor] - 1;
+            int floorRows = ROWS[boardPos.Floor] - 1;
+
+            if (boardPos.Col == 0)         { x += adjustHorizontal; }
+            if (boardPos.Col == floorCols) { x -= adjustHorizontal; }
+            if (boardPos.Row == 0)         { z += adjustHorizontal; }
+            if (boardPos.Row == floorRows) { z -= adjustHorizontal; }
+        }
+
+        return new Vector3(x, y, z);
+    }
+
+    private Quaternion BoardToSceneRot(Position boardPos)
+    {
+        if (Board.IsFloorBorder(boardPos))
+        {
+            int floorCols = COLS[boardPos.Floor] - 1;
+            int floorRows = ROWS[boardPos.Floor] - 1;
+
+            if (boardPos.Col == 0)         { return Quaternion.Euler(0.0f, 0.0f, 90.0f); }
+            if (boardPos.Col == floorCols) { return Quaternion.Euler(0.0f, 0.0f, -90.0f); }
+            if (boardPos.Row == 0)         { return Quaternion.Euler(-90.0f, 0.0f, 0.0f); }
+            if (boardPos.Row == floorRows) { return Quaternion.Euler(90.0f, 0.0f, 0.0f); }
+        }
+        return Quaternion.identity;
     }
 
     private void SpawnDisc(Disc prefab, Position boardPos)
     {
         Vector3 scenePos = BoardToScenePos(boardPos);
-        discs[boardPos.Col, boardPos.Row] = Instantiate(prefab, scenePos, Quaternion.identity);
+        Quaternion sceneRot = BoardToSceneRot(boardPos);
+        discs[boardPos.Floor][boardPos.Col, boardPos.Row] = Instantiate(prefab, scenePos, sceneRot);
     }
 
     private void AddStartDiscs()
     {
         foreach (Position boardPos in gameState.OccupiedPositions())
         {
-            Player player = gameState.Board[boardPos.Col, boardPos.Row];
+            Player player = gameState.Board[boardPos];
             SpawnDisc(discPrefabs[player], boardPos);
         }
     }
@@ -130,7 +186,7 @@ public class GameManager : MonoBehaviour
     {
         foreach (Position boardPos in positions)
         {
-            discs[boardPos.Col, boardPos.Row].Flip();
+            discs[boardPos.Floor][boardPos.Col, boardPos.Row].Flip();
         }
     }
 
@@ -184,7 +240,7 @@ public class GameManager : MonoBehaviour
 
         foreach (Position pos in gameState.OccupiedPositions())
         {
-            Player player = gameState.Board[pos.Col, pos.Row];
+            Player player = gameState.Board[pos];
 
             if (player == Player.Black)
             {
@@ -197,7 +253,7 @@ public class GameManager : MonoBehaviour
                 uiManager.SetWhiteScoreText(whiteCount);
             }
 
-            discs[pos.Col, pos.Row].Twitch();
+            discs[pos.Floor][pos.Col, pos.Row].Twitch();
             yield return new WaitForSeconds(0.05f);
         }
     }

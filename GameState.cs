@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.UIElements;
 
 public class GameState
 {
-    private readonly int COLS = Board.COLS;
-    private readonly int ROWS = Board.ROWS;
+    private readonly int[] COLS = Board.COLS;
+    private readonly int[] ROWS = Board.ROWS;
+    private readonly int FLOORS = Board.FLOORS;
 
     public Board Board { get; }
     public Dictionary<Player, int> DiscCount { get; }
@@ -38,7 +40,7 @@ public class GameState
         Player movePlayer = CurrentPlayer;
         List<Position> outflanked = LegalMoves[pos];
 
-        Board[pos.Col, pos.Row] = movePlayer;
+        Board[pos] = movePlayer;
         FlipDiscs(outflanked);
         UpdateDiscCounts(movePlayer, outflanked.Count);
         PassTurn();
@@ -50,14 +52,11 @@ public class GameState
 
     public IEnumerable<Position> OccupiedPositions()
     {
-        for (int col = 0; col < COLS; col++)
+        foreach (Position pos in Board.AllPositions)
         {
-            for (int row = 0; row < ROWS; row++)
+            if (!Board.IsEmpty(pos))
             {
-                if (Board[col, row] != Player.None)
-                {
-                    yield return new Position(col, row);
-                }
+                yield return pos;
             }
         }
     }
@@ -66,7 +65,7 @@ public class GameState
     {
         foreach(Position pos in positions)
         {
-            Board[pos.Col, pos.Row] = Board[pos.Col, pos.Row].Opponent();
+            Board[pos] = Board[pos].Opponent();
         }
     }
 
@@ -107,23 +106,19 @@ public class GameState
         }
     }
 
-    private bool IsInsideBoard(Position pos)
-    {
-        return pos.Col >= 0 && pos.Col < COLS && pos.Row >= 0 && pos.Row < ROWS;
-    }
-
     private List<Position> OutflankedInDir(Position initialPos, Player player, Direction dir)
     {
         List<Position> outflanked = new List<Position>();
         Position pos = initialPos + dir;
 
-        while (IsInsideBoard(pos) && Board[pos.Col, pos.Row] != Player.None)
+        while (Board.IsInside(pos) && !Board.IsEmpty(pos))
         {
-            if (Board[pos.Col, pos.Row] == player.Opponent())
+            if (Board[pos] == player.Opponent())
             {
                 outflanked.Add(pos);
                 pos += dir;
             }
+            else if (Board[pos] == Player.NotPlayable) { pos += dir; }
             else 
             {
                 return outflanked;
@@ -145,7 +140,7 @@ public class GameState
 
     private bool IsMoveLegal(Player player, Position pos, out List<Position> outflanked)
     {
-        if (Board[pos.Col, pos.Row] != Player.None)
+        if (!Board.IsEmpty(pos))
         {
             outflanked = null;
             return false;
@@ -158,17 +153,12 @@ public class GameState
     private Dictionary<Position, List<Position>> FindLegalMoves(Player player)
     {
         Dictionary<Position, List<Position>> legalMoves = new();
-        
-        for (int col = 0; col < COLS; col++)
-        {
-            for (int row = 0; row < ROWS; row++)
-            {
-                Position pos = new Position(col, row);
 
-                if (IsMoveLegal(player, pos, out List<Position> outflanked))
-                {
-                    legalMoves[pos] = outflanked;
-                }
+        foreach (Position pos in Board.AllPositions)
+        {
+            if (IsMoveLegal(player, pos, out List<Position> outflanked))
+            {
+                legalMoves[pos] = outflanked;
             }
         }
 

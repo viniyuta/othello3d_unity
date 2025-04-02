@@ -23,6 +23,9 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     private RectTransform playAgainButton;
 
+    [SerializeField]
+    private Image moveCameraOverlay;
+
     public void SetPlayerText(Player currentPlayer)
     {
         if (currentPlayer == Player.Black)
@@ -94,6 +97,7 @@ public class UIManager : MonoBehaviour
     private IEnumerator ShowOverlay()
     {
         blackOverlay.gameObject.SetActive(true);
+        moveCameraOverlay.gameObject.SetActive(false);
         blackOverlay.color = Color.clear;
         blackOverlay.rectTransform.LeanAlpha(0.8f, 1.0f);
         yield return new WaitForSeconds(1.0f);
@@ -104,6 +108,7 @@ public class UIManager : MonoBehaviour
         blackOverlay.rectTransform.LeanAlpha(0, 1.0f);
         yield return new WaitForSeconds(1.0f);
         blackOverlay.gameObject.SetActive(false);
+        moveCameraOverlay.gameObject.SetActive(true);
     }
 
     private IEnumerator MoveScoresDown()

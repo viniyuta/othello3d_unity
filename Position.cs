@@ -27,8 +27,6 @@ public class Position
     public static Position operator +(Position pos, Direction dir)
     {
         Position addPos = FloorDirections.AddDirToPos(pos, dir);
-        Debug.Log($"Position: {pos.Col}, {pos.Row}, {pos.Floor}\nDirection: {dir.ColDelta}, {dir.RowDelta}\nAdded Position: {addPos.Col}, {addPos.Row}, {addPos.Floor}");
-
         return addPos;
     }
 }

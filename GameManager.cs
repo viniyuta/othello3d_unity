@@ -102,7 +102,7 @@ public class GameManager : MonoBehaviour
         // タップした位置をボードのPositionに変換する
         int col = (int)(scenePos.x - 0.25f);  // オセロ盤の各マスのサイズが1.0fのためx方向の調整は0.25fになる
         int row = (int)(scenePos.z - 0.25f);  // オセロ盤の各マスのサイズが1.0fのためz方向の調整は0.25fになる
-        int floor = (int)scenePos.y;
+        int floor = GetFloor(scenePos.y);
 
         for (int prevFloor = 0; prevFloor < floor; prevFloor++)
         {
@@ -113,6 +113,17 @@ public class GameManager : MonoBehaviour
         }
 
         return new Position(col, row, floor);
+    }
+
+    private int GetFloor(float y)
+    {
+        float floorAdjust = 0.016f;
+        int floor = (int)(y - floorAdjust);
+        if (y - floor > floorAdjust)
+        {
+            floor += 1;
+        }
+        return floor;
     }
 
     private Vector3 BoardToScenePos(Position boardPos)

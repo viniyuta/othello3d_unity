@@ -1,0 +1,45 @@
+{
+    "name": "TouchActions",
+    "maps": [
+        {
+            "name": "Touch",
+            "id": "24515c28-5ee8-4881-a3e3-4b18d6ce222f",
+            "actions": [
+                {
+                    "name": "MoveCamera",
+                    "type": "Value",
+                    "id": "8cdef9af-f588-4280-884e-f96d47c7fab9",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "0347353d-56d0-4ed6-b078-5d317583af0a",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveCamera",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5527291b-3cd8-4e9a-914d-5f3a6209a696",
+                    "path": "<Touchscreen>/touch0/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveCamera",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

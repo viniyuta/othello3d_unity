@@ -1,9 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Data.Common;
-using Unity.VisualScripting;
-using UnityEngine;
-using UnityEngine.UIElements;
 
 public class Board
 {
@@ -53,6 +48,9 @@ public class Board
         this[1, 2, 2] = Player.Black;
         this[2, 1, 2] = Player.Black;
         this[2, 2, 2] = Player.White;
+
+        this[1, 0, 2] = Player.White;
+        this[2, 0, 2] = Player.White;
 
         for (int floor = 1; floor < FLOORS; floor++)
         {

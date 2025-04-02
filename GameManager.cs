@@ -112,6 +112,7 @@ public class GameManager : MonoBehaviour
             row -= floorRow;
         }
 
+        Debug.Log($"Clicked: ({col}, {row}, {floor})");
         return new Position(col, row, floor);
     }
 

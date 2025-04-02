@@ -18,10 +18,10 @@ public class FloorDirections
         int nextFloorRows = ROWS[pos.Floor + 1];
         
         return 
-            pos.Col >= nextFloorPosition.Col &&
-            pos.Row >= nextFloorPosition.Row &&
-            pos.Col < nextFloorPosition.Col + nextFloorCols &&
-            pos.Row < nextFloorPosition.Row + nextFloorRows;
+            pos.Col > nextFloorPosition.Col &&
+            pos.Row > nextFloorPosition.Row &&
+            pos.Col < nextFloorPosition.Col + nextFloorCols - 1 &&
+            pos.Row < nextFloorPosition.Row + nextFloorRows - 1;
     }
 
     // 下の階層へ行くべきかを判断するメソッド

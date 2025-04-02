@@ -2,10 +2,6 @@ using System.Collections.Generic;
 
 public class GameState
 {
-    private readonly int[] COLS = Board.COLS;
-    private readonly int[] ROWS = Board.ROWS;
-    private readonly int FLOORS = Board.FLOORS;
-
     public Board Board { get; }
     public Dictionary<Player, int> DiscCount { get; }
     public Player CurrentPlayer { get; private set; }

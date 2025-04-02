@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
 
 public class GameState
 {
-    public const int COLS = 8;
-    public const int ROWS = 8;
+    private readonly int[] COLS = Board.COLS;
+    private readonly int[] ROWS = Board.ROWS;
+    private readonly int FLOORS = Board.FLOORS;
 
-    public Player[,] Board { get; }
+    public Board Board { get; }
     public Dictionary<Player, int> DiscCount { get; }
     public Player CurrentPlayer { get; private set; }
     public bool GameOver { get; private set; }
@@ -15,11 +15,7 @@ public class GameState
 
     public GameState()
     {
-        Board = new Player[COLS, ROWS];
-        Board[3,3] = Player.White;
-        Board[3,4] = Player.Black;
-        Board[4,3] = Player.Black;
-        Board[4,4] = Player.White;
+        Board = Board.Initial();
 
         DiscCount = new Dictionary<Player, int>()
         {
@@ -42,7 +38,7 @@ public class GameState
         Player movePlayer = CurrentPlayer;
         List<Position> outflanked = LegalMoves[pos];
 
-        Board[pos.Col, pos.Row] = movePlayer;
+        Board[pos] = movePlayer;
         FlipDiscs(outflanked);
         UpdateDiscCounts(movePlayer, outflanked.Count);
         PassTurn();
@@ -54,14 +50,11 @@ public class GameState
 
     public IEnumerable<Position> OccupiedPositions()
     {
-        for (int col = 0; col < COLS; col++)
+        foreach (Position pos in Board.AllPositions)
         {
-            for (int row = 0; row < ROWS; row++)
+            if (!Board.IsEmpty(pos))
             {
-                if (Board[col, row] != Player.None)
-                {
-                    yield return new Position(col, row);
-                }
+                yield return pos;
             }
         }
     }
@@ -70,7 +63,7 @@ public class GameState
     {
         foreach(Position pos in positions)
         {
-            Board[pos.Col, pos.Row] = Board[pos.Col, pos.Row].Opponent();
+            Board[pos] = Board[pos].Opponent();
         }
     }
 
@@ -111,28 +104,19 @@ public class GameState
         }
     }
 
-    private bool isInsideBoard(int row, int col)
-    {
-        return col >= 0 && col < COLS && row >= 0 && row < ROWS;
-    }
-
-    private bool isInsideBoard(Position pos)
-    {
-        return pos.Col >= 0 && pos.Col < COLS && pos.Row >= 0 && pos.Row < ROWS;
-    }
-
     private List<Position> OutflankedInDir(Position initialPos, Player player, Direction dir)
     {
         List<Position> outflanked = new List<Position>();
         Position pos = initialPos + dir;
 
-        while (isInsideBoard(pos) && Board[pos.Col, pos.Row] != Player.None)
+        while (Board.IsInside(pos) && !Board.IsEmpty(pos))
         {
-            if (Board[pos.Col, pos.Row] == player.Opponent())
+            if (Board[pos] == player.Opponent())
             {
                 outflanked.Add(pos);
                 pos += dir;
             }
+            else if (Board[pos] == Player.NotPlayable) { pos += dir; }
             else 
             {
                 return outflanked;
@@ -154,7 +138,7 @@ public class GameState
 
     private bool IsMoveLegal(Player player, Position pos, out List<Position> outflanked)
     {
-        if (Board[pos.Col, pos.Row] != Player.None)
+        if (!Board.IsEmpty(pos))
         {
             outflanked = null;
             return false;
@@ -167,17 +151,12 @@ public class GameState
     private Dictionary<Position, List<Position>> FindLegalMoves(Player player)
     {
         Dictionary<Position, List<Position>> legalMoves = new();
-        
-        for (int col = 0; col < COLS; col++)
-        {
-            for (int row = 0; row < ROWS; row++)
-            {
-                Position pos = new Position(col, row);
 
-                if (IsMoveLegal(player, pos, out List<Position> outflanked))
-                {
-                    legalMoves[pos] = outflanked;
-                }
+        foreach (Position pos in Board.AllPositions)
+        {
+            if (IsMoveLegal(player, pos, out List<Position> outflanked))
+            {
+                legalMoves[pos] = outflanked;
             }
         }
 

@@ -1,6 +1,6 @@
 public enum Player
 {
-    None, Black, White
+    None, Black, White, NotPlayable
 }
 
 public static class PlayerExtensions

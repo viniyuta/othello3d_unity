@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 public class Board
 {
@@ -62,6 +63,7 @@ public class Board
                 }
             }
         }
+
     }
 
     private void CreateAllPositions()

@@ -5,36 +5,47 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    [SerializeField]
-    private TextMeshProUGUI topText;
+    // ボタン
+    [SerializeField] private RectTransform playAgainButton;
 
-    [SerializeField]
-    private TextMeshProUGUI blackScoreText;
+    [SerializeField] private RectTransform exitButton;
 
-    [SerializeField]
-    private TextMeshProUGUI whiteScoreText;
+    [SerializeField] private RectTransform surrenderButton;
 
-    [SerializeField]
-    private TextMeshProUGUI winnerText;
+    [SerializeField] private RectTransform surrenderConfirmationButton;
 
-    [SerializeField]
-    private Image blackOverlay;
+    [SerializeField] private RectTransform cancelSurrenderButton;
 
-    [SerializeField]
-    private RectTransform playAgainButton;
 
-    [SerializeField]
-    private Image moveCameraOverlay;
+    // テキスト
+    [SerializeField] private TextMeshProUGUI topText;
+
+    [SerializeField] private TextMeshProUGUI blackScoreText;
+
+    [SerializeField] private TextMeshProUGUI whiteScoreText;
+
+    [SerializeField] private TextMeshProUGUI winnerText;
+
+    [SerializeField] private TextMeshProUGUI surrenderConfirmationText;
+
+
+    // 背景・オーバーレイ
+    [SerializeField] private Image blackOverlay;
+
+    [SerializeField] private Image moveCameraOverlay;
+
+    [SerializeField] private Image header;
+
 
     public void SetPlayerText(Player currentPlayer)
     {
         if (currentPlayer == Player.Black)
         {
-            topText.text = "Black's Turn   <sprite name=DiscBlackUp>";
+            topText.text = "黒プレイヤーの番  <sprite name=DiscBlackUp>";
         }
         else if (currentPlayer == Player.White)
         {
-            topText.text = "White's Turn   <sprite name=DiscWhiteUp>";
+            topText.text = "白プレイヤーの番   <sprite name=DiscWhiteUp>";
         }
     }
 
@@ -42,12 +53,12 @@ public class UIManager : MonoBehaviour
     {
         if (skippedPlayer == Player.Black)
         {
-            topText.text = "SKIP!  <sprite name=DiscBlackUp>";
+            topText.text = "パス  <sprite name=DiscBlackUp>";
         }
 
         else if (skippedPlayer == Player.White)
         {
-            topText.text = "SKIP!  <sprite name=DiscWhiteUp>";
+            topText.text = "パス  <sprite name=DiscWhiteUp>";
         }
     }
 
@@ -58,7 +69,7 @@ public class UIManager : MonoBehaviour
 
     public IEnumerator AnimateTopText()
     {
-        topText.transform.LeanScale(Vector3.one * 1.2f, 0.25f).setLoopPingPong(2);
+        topText.transform.LeanScale(Vector3.one * 1.05f, 0.25f).setLoopPingPong(2);
         yield return new WaitForSeconds(1.0f);
     }
 
@@ -122,9 +133,9 @@ public class UIManager : MonoBehaviour
     {
         winnerText.text = winner switch
         {
-            Player.Black => "Black Won!",
-            Player.White => "White won!",
-            _ => "Draw!",
+            Player.Black => "黒プレイヤーの勝ち！",
+            Player.White => "白プレイヤーの勝ち！",
+            _ => "引き分け！",
         };
     }
 
@@ -134,16 +145,51 @@ public class UIManager : MonoBehaviour
         yield return MoveScoresDown();
         yield return ScaleUp(winnerText.rectTransform);
         yield return ScaleUp(playAgainButton);
+        yield return ScaleUp(exitButton);
     }
 
     public IEnumerator HideEndScreen()
     {
+        ShowPlayUI();
         StartCoroutine(ScaleDown(winnerText.rectTransform));
         StartCoroutine(ScaleDown(blackScoreText.rectTransform));
         StartCoroutine(ScaleDown(whiteScoreText.rectTransform));
         StartCoroutine(ScaleDown(playAgainButton));
+        StartCoroutine(ScaleDown(exitButton));
 
         yield return new WaitForSeconds(0.5f);
         yield return HideOverlay();
+    }
+
+    public IEnumerator ShowSurrenderConfirmationScreen()
+    {
+        HidePlayUI();
+        yield return ShowOverlay();
+        yield return ScaleUp(surrenderConfirmationText.rectTransform);
+        yield return ScaleUp(surrenderConfirmationButton);
+        yield return ScaleUp(cancelSurrenderButton);
+    }
+
+    public IEnumerator HideSurrenderConfirmationScreen()
+    {
+        ShowPlayUI();
+        StartCoroutine(ScaleDown(surrenderConfirmationText.rectTransform));
+        StartCoroutine(ScaleDown(surrenderConfirmationButton));
+        StartCoroutine(ScaleDown(cancelSurrenderButton));
+
+        yield return new WaitForSeconds(0.5f);
+        yield return HideOverlay();
+    }
+
+    public void HidePlayUI()
+    {
+        header.gameObject.SetActive(false);
+        surrenderButton.gameObject.SetActive(false);
+    }
+
+    private void ShowPlayUI()
+    {
+        header.gameObject.SetActive(true);
+        surrenderButton.gameObject.SetActive(true);
     }
 }

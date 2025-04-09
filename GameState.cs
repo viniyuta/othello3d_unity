@@ -15,9 +15,17 @@ public class GameState
 
         DiscCount = new Dictionary<Player, int>()
         {
-            { Player.Black, 2},
-            { Player.White, 2}
+            { Player.Black, 0},
+            { Player.White, 0}
         };
+        foreach(Position pos in Board.AllPositions)
+        {
+            Player player = Board[pos];
+            if (player == Player.Black || player == Player.White)
+            {
+                DiscCount[player] += 1;
+            }
+        }
 
         CurrentPlayer = Player.Black;
         LegalMoves = FindLegalMoves(CurrentPlayer);

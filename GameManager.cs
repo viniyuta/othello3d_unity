@@ -47,10 +47,6 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Application.Quit();
-        }
         if (Input.GetMouseButtonDown(0))
         {
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
@@ -212,10 +208,12 @@ public class GameManager : MonoBehaviour
         yield return uiManager.AnimateTopText();
     }
 
-    private IEnumerator ShowGameOver(Player winner)
+    private IEnumerator ShowGameOver(Player winner, string topText="ゲームオーバー！")
     {
-        uiManager.SetTopText("GameOver");
+        uiManager.SetTopText(topText);
         yield return uiManager.AnimateTopText();
+
+        uiManager.HidePlayUI();
 
         yield return uiManager.ShowScoreText();
         yield return new WaitForSeconds(0.5f);
@@ -269,12 +267,43 @@ public class GameManager : MonoBehaviour
     private IEnumerator RestartGame()
     {
         yield return uiManager.HideEndScreen();
-        UnityEngine.SceneManagement.Scene activeScene = SceneManager.GetActiveScene();
+        Scene activeScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(activeScene.name);
+    }
+
+    private void GoToInitialScene()
+    {
+        // Scene introScene = SceneManager.GetSceneByName("");
+        // SceneManager.LoadScene(introScene.name);
+        Application.Quit();
     }
 
     public void OnPlayAgainClicked()
     {
         StartCoroutine(RestartGame());
+    }
+
+    public void OnExitClicked()
+    {
+        Debug.Log("Exit Clicked");
+        GoToInitialScene();
+    }
+
+    public void OnSurrenderClicked()
+    {
+        Debug.Log("Surrender clicked");
+        StartCoroutine(uiManager.ShowSurrenderConfirmationScreen());
+    }
+
+    public void OnSurrenderConfimationClicked()
+    {
+        Player surrenderPlayer = gameState.CurrentPlayer;
+        StartCoroutine(uiManager.HideSurrenderConfirmationScreen());
+        StartCoroutine(ShowGameOver(surrenderPlayer.Opponent()));
+    }
+
+    public void OnCancelSurrenderClicked()
+    {
+        StartCoroutine(uiManager.HideSurrenderConfirmationScreen());
     }
 }

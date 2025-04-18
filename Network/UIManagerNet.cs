@@ -2,8 +2,11 @@ using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Unity.Netcode;
+using Unity.Collections;
+using System;
 
-public class UIManagerNet : MonoBehaviour
+public class UIManagerNet : NetworkBehaviour
 {
     // ボタン
     [SerializeField] private RectTransform playAgainButton;
@@ -40,16 +43,31 @@ public class UIManagerNet : MonoBehaviour
 
     [SerializeField] private Image header;
 
+    private static NetworkVariable<FixedString64Bytes> topTextStringNet = new ();
+
+
+    void Start()
+    {
+        topTextStringNet.OnValueChanged += OnNetworkTextValueChangedRpc;
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void OnNetworkTextValueChangedRpc(FixedString64Bytes previousValue, FixedString64Bytes newValue)
+    {
+        topText.text = newValue.ToString();
+    }
+
+
 
     public void SetPlayerText(Player currentPlayer)
     {
         if (currentPlayer == Player.Black)
         {
-            topText.text = "黒プレイヤーの番  <sprite name=DiscBlackUp>";
+            SetTopText("黒プレイヤーの番  <sprite name=DiscBlackUp>");
         }
         else if (currentPlayer == Player.White)
         {
-            topText.text = "白プレイヤーの番   <sprite name=DiscWhiteUp>";
+            SetTopText("白プレイヤーの番   <sprite name=DiscWhiteUp>");
         }
     }
 
@@ -57,18 +75,18 @@ public class UIManagerNet : MonoBehaviour
     {
         if (skippedPlayer == Player.Black)
         {
-            topText.text = "パス  <sprite name=DiscBlackUp>";
+            SetTopText("パス  <sprite name=DiscBlackUp>");
         }
 
         else if (skippedPlayer == Player.White)
         {
-            topText.text = "パス  <sprite name=DiscWhiteUp>";
+            SetTopText("パス  <sprite name=DiscWhiteUp>");
         }
     }
 
     public void SetTopText(string message)
     {
-        topText.text = message;
+        topTextStringNet.Value = message;
     }
 
     public IEnumerator AnimateTopText()

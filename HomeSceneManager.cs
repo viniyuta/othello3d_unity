@@ -12,12 +12,12 @@ public class HomeSceneManager : MonoBehaviour
 
     public void OnOfflineButton()
     {
-        LoadScene("GameScene");
+        LoadScene("OfflineGameScene");
     }
 
     public void OnOnlineButton()
     {
-        Debug.Log("Offline Button clicked");
+        LoadScene("OnlineGameScene");
     }
 
     public void OnLanguageButton()

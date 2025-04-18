@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour
+public class GameManagerNet : NetworkBehaviour
 {
     [SerializeField]
     private Camera cam;
@@ -18,7 +19,7 @@ public class GameManager : MonoBehaviour
     private GameObject highlightPrefab;
 
     [SerializeField]
-    private UIManager uiManager;
+    private UIManagerNet uiManager;
 
     private Dictionary<Player, Disc> discPrefabs = new Dictionary<Player, Disc>();
     private GameState gameState = new GameState();
@@ -31,6 +32,7 @@ public class GameManager : MonoBehaviour
         new Disc[COLS[2], ROWS[2]]
     };
     private List<GameObject> highlights = new();
+    private Player localPlayer;
 
 
     // Start is called before the first frame update
@@ -38,8 +40,20 @@ public class GameManager : MonoBehaviour
     {
         discPrefabs[Player.Black] = discBlackUp;
         discPrefabs[Player.White] = discWhiteUp;
+    }
 
-        AddStartDiscs();
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        if (NetworkManager.Singleton.LocalClientId == 0)
+        {
+            localPlayer = Player.Black;
+        }
+        else 
+        {
+            localPlayer = Player.White;
+        }
+        if (IsServer) AddStartDiscs();
         ShowLegalMoves();
         uiManager.SetPlayerText(gameState.CurrentPlayer);
     }
@@ -55,33 +69,67 @@ public class GameManager : MonoBehaviour
             {
                 Vector3 impact = hitInfo.point;
                 Position boardPosition = SceneToBoardPos(impact);
-                OnBoardClicked(boardPosition);
+                OnBoardClicked(boardPosition, localPlayer);
             }
         }
     }
 
     private void ShowLegalMoves()
     {
+        ShowLegalMovesRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    private void ShowLegalMovesRpc()
+    {
         foreach (Position boardPos in  gameState.LegalMoves.Keys)
         {
             Vector3 scenePos = BoardToScenePos(boardPos);
             Quaternion sceneRot = BoardToSceneRot(boardPos);
             GameObject highlight = Instantiate(highlightPrefab, scenePos, sceneRot);
+            highlight.GetComponent<NetworkObject>().Spawn(true);
             highlights.Add(highlight);
         }
     }
 
     private void HideLegalMoves()
     {
+        HideLegalMovesRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    private void HideLegalMovesRpc()
+    {
         highlights.ForEach(Destroy);
+        foreach(GameObject highlight in highlights)
+        {
+            highlight.GetComponent<NetworkObject>().Despawn();
+        }
         highlights.Clear();
     }
 
-    private void OnBoardClicked(Position boardPos)
+    private void OnBoardClicked(Position boardPos, Player localPlayer)
     {
+        OnBoardClickedRpc(boardPos.Col, boardPos.Row, boardPos.Floor, localPlayer);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void OnBoardClickedRpc(int col, int row, int floor, Player localPlayer)
+    {
+        if (gameState.CurrentPlayer != localPlayer)
+        {
+            Debug.Log($"It's {gameState.CurrentPlayer}'s turn!");
+            return;
+        }
+
+        Position boardPos = new (col, row, floor);
         if (gameState.MakeMove(boardPos, out MoveInfo moveInfo))
         {
             StartCoroutine(OnMoveMade(moveInfo));
+        }
+        else
+        {
+            Debug.Log("Invalid move!");
         }
     }
 
@@ -172,9 +220,20 @@ public class GameManager : MonoBehaviour
 
     private void SpawnDisc(Player player, Position boardPos)
     {   
+        SpawnDiscRpc(boardPos.Col, boardPos.Row, boardPos.Floor, player);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void SpawnDiscRpc(int col, int row, int floor, Player player)
+    {
+        Position boardPos = new Position(col, row, floor);
         Vector3 scenePos = BoardToScenePos(boardPos);
         Quaternion sceneRot = BoardToSceneRot(boardPos);
-        discs[boardPos.Floor][boardPos.Col, boardPos.Row] = Instantiate(discPrefabs[player], scenePos, sceneRot);
+
+        Disc disc = Instantiate(discPrefabs[player], scenePos, sceneRot);
+        disc.GetComponent<NetworkObject>().Spawn(true);
+
+        discs[floor][col, row] = disc;
     }
 
     private void AddStartDiscs()
@@ -273,9 +332,8 @@ public class GameManager : MonoBehaviour
 
     private void GoToInitialScene()
     {
-        // Scene introScene = SceneManager.GetSceneByName("");
-        // SceneManager.LoadScene(introScene.name);
-        Application.Quit();
+        Scene introScene = SceneManager.GetSceneByName("HomeScene");
+        SceneManager.LoadScene(introScene.name);
     }
 
     public void OnPlayAgainClicked()
@@ -307,3 +365,4 @@ public class GameManager : MonoBehaviour
         StartCoroutine(uiManager.HideSurrenderConfirmationScreen());
     }
 }
+

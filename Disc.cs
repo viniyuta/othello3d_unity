@@ -1,13 +1,13 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class Disc : MonoBehaviour
+public class Disc : NetworkBehaviour
 {
     [SerializeField]
     private Player upColor;
     private Animator animator;
 
-    // Start is called before the first frame update
-    private void Start()
+    private void Awake()
     {
         animator = GetComponent<Animator>();
     }

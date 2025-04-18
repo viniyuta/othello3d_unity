@@ -3,7 +3,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+public class UIManagerNet : MonoBehaviour
 {
     // ボタン
     [SerializeField] private RectTransform playAgainButton;
@@ -15,6 +15,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private RectTransform surrenderConfirmationButton;
 
     [SerializeField] private RectTransform cancelSurrenderButton;
+
+    [SerializeField] private RectTransform hostButton;
+
+    [SerializeField] private RectTransform clientButton;
 
 
     // テキスト
@@ -191,5 +195,13 @@ public class UIManager : MonoBehaviour
     {
         header.gameObject.SetActive(true);
         surrenderButton.gameObject.SetActive(true);
+    }
+
+    public void HideNetworkButtons()
+    {
+        hostButton.gameObject.SetActive(false);
+        clientButton.gameObject.SetActive(false);
+        blackOverlay.gameObject.SetActive(false);
+        ShowPlayUI();
     }
 }

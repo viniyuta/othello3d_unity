@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 public class Board
 {
@@ -49,9 +50,6 @@ public class Board
         this[2, 1, 2] = Player.Black;
         this[2, 2, 2] = Player.White;
 
-        this[1, 0, 2] = Player.White;
-        this[2, 0, 2] = Player.White;
-
         for (int floor = 1; floor < FLOORS; floor++)
         {
             for (int col = 0; col < COLS[floor]; col++)
@@ -65,6 +63,7 @@ public class Board
                 }
             }
         }
+
     }
 
     private void CreateAllPositions()

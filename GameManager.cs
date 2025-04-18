@@ -20,6 +20,9 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private UIManager uiManager;
 
+    [SerializeField]
+    private SoundManager soundManager;
+
     private Dictionary<Player, Disc> discPrefabs = new Dictionary<Player, Disc>();
     private GameState gameState = new GameState();
     private static readonly int[] COLS = Board.COLS;
@@ -175,6 +178,7 @@ public class GameManager : MonoBehaviour
         Vector3 scenePos = BoardToScenePos(boardPos);
         Quaternion sceneRot = BoardToSceneRot(boardPos);
         discs[boardPos.Floor][boardPos.Col, boardPos.Row] = Instantiate(discPrefabs[player], scenePos, sceneRot);
+        soundManager.PlayPlaceSfx();
     }
 
     private void AddStartDiscs()
@@ -190,8 +194,9 @@ public class GameManager : MonoBehaviour
     {
         foreach (Position boardPos in positions)
         {
-            discs[boardPos.Floor][boardPos.Col, boardPos.Row].Flip();
+            discs[boardPos.Floor][boardPos.Col, boardPos.Row].Flip(); // アニメーション
         }
+        soundManager.PlayFlipSfx();
     }
 
     private IEnumerator ShowMove(MoveInfo moveInfo)
@@ -205,6 +210,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator ShowTurnSkipped(Player skippedPlayer)
     {
         uiManager.SetSkippedPlayer(skippedPlayer);
+        soundManager.PlayPassSfx();
         yield return uiManager.AnimateTopText();
     }
 
@@ -259,7 +265,8 @@ public class GameManager : MonoBehaviour
                 uiManager.SetWhiteScoreText(whiteCount);
             }
 
-            discs[pos.Floor][pos.Col, pos.Row].Twitch();
+            discs[pos.Floor][pos.Col, pos.Row].Twitch(); // アニメーション
+            soundManager.PlayTwitchSfx();
             yield return new WaitForSeconds(0.05f);
         }
     }
@@ -273,9 +280,8 @@ public class GameManager : MonoBehaviour
 
     private void GoToInitialScene()
     {
-        // Scene introScene = SceneManager.GetSceneByName("");
-        // SceneManager.LoadScene(introScene.name);
-        Application.Quit();
+        Scene introScene = SceneManager.GetSceneByName("HomeScene");
+        SceneManager.LoadScene(introScene.name);
     }
 
     public void OnPlayAgainClicked()

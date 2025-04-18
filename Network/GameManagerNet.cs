@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -20,6 +22,9 @@ public class GameManagerNet : NetworkBehaviour
 
     [SerializeField]
     private UIManagerNet uiManager;
+
+    [SerializeField]
+    private SoundManager soundManager;
 
     private Dictionary<Player, Disc> discPrefabs = new Dictionary<Player, Disc>();
     private GameState gameState = new GameState();
@@ -234,6 +239,13 @@ public class GameManagerNet : NetworkBehaviour
         disc.GetComponent<NetworkObject>().Spawn(true);
 
         discs[floor][col, row] = disc;
+        TriggerOnPlacedObjectRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnPlacedObjectRpc()
+    {
+        soundManager.PlayPlaceSfx();
     }
 
     private void AddStartDiscs()
@@ -249,8 +261,15 @@ public class GameManagerNet : NetworkBehaviour
     {
         foreach (Position boardPos in positions)
         {
-            discs[boardPos.Floor][boardPos.Col, boardPos.Row].Flip();
+            discs[boardPos.Floor][boardPos.Col, boardPos.Row].Flip();  // アニメーション
         }
+        TriggerOnFlippedRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnFlippedRpc()
+    {
+        soundManager.PlayFlipSfx();
     }
 
     private IEnumerator ShowMove(MoveInfo moveInfo)
@@ -318,9 +337,16 @@ public class GameManagerNet : NetworkBehaviour
                 uiManager.SetWhiteScoreText(whiteCount);
             }
 
-            discs[pos.Floor][pos.Col, pos.Row].Twitch();
+            discs[pos.Floor][pos.Col, pos.Row].Twitch(); // アニメーション
+            TriggerOnTwitchedRpc();
             yield return new WaitForSeconds(0.05f);
         }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnTwitchedRpc()
+    {
+        soundManager.PlayTwitchSfx();
     }
 
     private IEnumerator RestartGame()

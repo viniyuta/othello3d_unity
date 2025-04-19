@@ -5,6 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class HomeSceneManager : MonoBehaviour
 {
+    [SerializeField] LanguageManager localizationManager;
+
     private void LoadScene(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
@@ -22,6 +24,7 @@ public class HomeSceneManager : MonoBehaviour
 
     public void OnLanguageButton()
     {
-        Debug.Log("Language Button clicked");
+        int nextId = localizationManager.NextId();
+        localizationManager.ChangeLocale(nextId);
     }
 }
